@@ -4,279 +4,666 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiSlate Nexus V4.9 | Store Invoicing</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap"
-        rel="stylesheet">
+    <title>LogiSlate Nexus | Store Invoicing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --accent: #38bdf8;
-            --success: #10b981;
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --bg:           #f0f4f8;
+            --surface:      #ffffff;
+            --surface-2:    #f8fafc;
+            --border:       #e2e8f0;
+            --border-focus: #3b82f6;
+            --text-1:       #0f172a;
+            --text-2:       #475569;
+            --text-3:       #94a3b8;
+            --blue:         #2563eb;
+            --blue-light:   #eff6ff;
+            --blue-mid:     #bfdbfe;
+            --green:        #059669;
+            --green-light:  #ecfdf5;
+            --green-mid:    #a7f3d0;
+            --amber:        #d97706;
+            --amber-light:  #fffbeb;
+            --red:          #dc2626;
+            --red-light:    #fef2f2;
+            --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow-md:    0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+            --shadow-lg:    0 12px 32px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.05);
+            --radius:       12px;
+            --radius-sm:    8px;
+            --radius-lg:    16px;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
             min-height: 100vh;
-            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 64px;
+        }
+
+        /* ── Header ────────────────────────────────────────────── */
+        .site-header {
+            width: 100%;
+            max-width: 720px;
             display: flex;
             align-items: center;
-        }
-
-        /* Professional Card Layering */
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-            padding: 2.5rem;
-        }
-
-        .processor-header {
-            display: flex;
             justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .logo {
+            display: flex;
             align-items: center;
-            margin-bottom: 2rem;
+            gap: 10px;
         }
 
-        .version-tag {
-            font-size: 0.75rem;
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--accent);
-            padding: 4px 12px;
-            border-radius: 99px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--blue);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Interactive Drop Zone */
-        .drop-zone {
-            border: 2px dashed rgba(148, 163, 184, 0.3);
-            border-radius: 16px;
-            padding: 60px 20px;
-            text-align: center;
-            background: rgba(15, 23, 42, 0.5);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .logo-icon svg { display: block; }
+
+        .logo-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-1);
+            letter-spacing: -0.3px;
         }
 
-        .drop-zone:hover {
-            border-color: var(--accent);
-            background: rgba(56, 189, 248, 0.04);
-            transform: translateY(-2px);
-        }
+        .logo-name span { color: var(--blue); }
 
-        .drop-zone h5 {
-            color: var(--text-main);
+        .badge-version {
+            font-size: 11px;
             font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: var(--blue);
+            background: var(--blue-light);
+            border: 1px solid var(--blue-mid);
+            padding: 3px 9px;
+            border-radius: 99px;
+        }
+
+        /* ── Card ──────────────────────────────────────────────── */
+        .card {
+            width: 100%;
+            max-width: 720px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .card-body { padding: 32px; }
+
+        /* ── Section label ───────────────────────────────────────── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 10px;
+        }
+
+        /* ── Drop Zone ──────────────────────────────────────────── */
+        .drop-zone {
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 44px 24px;
+            text-align: center;
+            background: var(--surface-2);
+            cursor: pointer;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.07);
+        }
+
+        .drop-zone.has-file {
+            border-style: solid;
+            border-color: var(--green);
+            background: var(--green-light);
+        }
+
+        .drop-zone.has-file:hover {
+            box-shadow: 0 0 0 4px rgba(5,150,105,.07);
+        }
+
+        .dz-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 14px;
+            background: var(--blue-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s;
+        }
+
+        .drop-zone.has-file .dz-icon { background: var(--green-light); }
+        .drop-zone.has-file .dz-icon svg { color: var(--green); }
+
+        .dz-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-1);
+            margin-bottom: 4px;
+        }
+
+        .dz-sub {
+            font-size: 13px;
+            color: var(--text-2);
+        }
+
+        .dz-file-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--green);
+            background: var(--green-mid);
+            padding: 3px 10px;
+            border-radius: 99px;
+        }
+
+        /* ── Buttons ─────────────────────────────────────────────── */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 11px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: background .15s, border-color .15s, box-shadow .15s, opacity .15s, transform .1s;
+            white-space: nowrap;
+        }
+
+        .btn:active:not(:disabled) { transform: scale(.98); }
+
+        .btn-primary {
+            flex: 1;
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+            box-shadow: 0 2px 6px rgba(37,99,235,.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37,99,235,.35);
+        }
+
+        .btn-primary:disabled {
+            background: var(--border);
+            border-color: var(--border);
+            color: var(--text-3);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            flex: 1;
+            background: transparent;
+            color: var(--text-2);
+            border-color: var(--border);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-2);
+            border-color: #cbd5e1;
+            color: var(--text-1);
+        }
+
+        /* ── Log Panel ──────────────────────────────────────────── */
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 8px;
         }
 
-        .drop-zone p {
-            color: var(--text-dim);
-            font-size: 0.9rem;
-        }
-
-        /* Action Buttons */
-        .btn-action {
-            padding: 14px 28px;
-            border-radius: 12px;
+        .log-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
             font-weight: 600;
-            transition: all 0.2s ease;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-3);
+        }
+
+        .log-dot.active {
+            background: var(--green);
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        .btn-clear-log {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-3);
+            background: none;
             border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: inherit;
+            transition: color .15s, background .15s;
         }
 
-        .btn-generate {
-            background: var(--success);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-        }
+        .btn-clear-log:hover { color: var(--text-2); background: var(--surface-2); }
 
-        .btn-generate:disabled {
-            background: #334155;
-            opacity: 0.6;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-template {
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-template:hover {
-            background: rgba(56, 189, 248, 0.1);
-        }
-
-        /* Terminal/Log Window */
         .log-container {
-            background: #020617;
-            color: var(--success);
-            padding: 1.5rem;
-            border-radius: 12px;
-            height: 300px;
+            background: #0f172a;
+            border-radius: var(--radius-sm);
+            height: 240px;
             overflow-y: auto;
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.85rem;
-            border: 1px solid rgba(16, 185, 129, 0.1);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            font-size: 12px;
+            line-height: 1.7;
+            padding: 14px 16px;
+            border: 1px solid #1e293b;
         }
 
-        /* Scrollbar styling */
-        .log-container::-webkit-scrollbar {
-            width: 8px;
+        .log-container::-webkit-scrollbar { width: 6px; }
+        .log-container::-webkit-scrollbar-track { background: transparent; }
+        .log-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        .log-line { display: flex; gap: 10px; }
+
+        .log-time {
+            color: #475569;
+            flex-shrink: 0;
+            user-select: none;
         }
 
-        .log-container::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
+        .log-msg-ready   { color: #64748b; }
+        .log-msg-info    { color: #93c5fd; }
+        .log-msg-success { color: #6ee7b7; }
+        .log-msg-warn    { color: #fcd34d; }
+        .log-msg-error   { color: #fca5a5; }
+
+        /* ── Divider ───────────────────────────────────────────── */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 28px 0;
         }
 
-        /* Glassmorphism Effect */
-        .glass-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            /* Dim the background */
-            backdrop-filter: blur(8px);
-            /* The "Glass" blur */
+        /* ── Info strip ────────────────────────────────────────── */
+        .info-strip {
             display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 1000;
-            transition: opacity 0.3s ease;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--blue-light);
+            border: 1px solid var(--blue-mid);
+            border-radius: var(--radius-sm);
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: #1e40af;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 2rem;
-            width: 90%;
+        .info-strip svg { flex-shrink: 0; }
+
+        /* ── Card Footer ────────────────────────────────────────── */
+        .card-footer {
+            padding: 14px 32px;
+            background: var(--surface-2);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        .btn-instructions {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--blue);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 4px 6px;
+            border-radius: 5px;
+            transition: background .15s;
+        }
+
+        .btn-instructions:hover { background: var(--blue-light); }
+
+        /* ── Modal ─────────────────────────────────────────────── */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
             max-width: 500px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            color: #fff;
-            position: relative;
-            animation: slideUp 0.4s ease-out;
+            transform: translateY(12px);
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+            overflow: hidden;
         }
 
-        .glass-content {
+        .modal-backdrop.open .modal { transform: translateY(0); }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-1);
+        }
+
+        .modal-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-2);
+            transition: background .15s;
+        }
+
+        .modal-close:hover { background: var(--border); }
+
+        .modal-body { padding: 20px 24px 24px; }
+
+        .steps { display: flex; flex-direction: column; gap: 16px; }
+
+        .step { display: flex; gap: 14px; }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            flex-shrink: 0;
+            background: var(--blue);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .step-text {
+            font-size: 13px;
+            color: var(--text-2);
             line-height: 1.6;
         }
 
-        .hidden {
-            display: none;
-            opacity: 0;
+        .step-text strong { color: var(--text-1); font-weight: 600; }
+
+        /* ── Floating Footer ────────────────────────────────────── */
+        .floating-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 38px;
+            padding: 0 20px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            font-size: 12px;
+            color: var(--text-3);
+            z-index: 50;
         }
 
-        /* Entrance Animation */
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .floating-footer a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        /* Utilities */
-        .close-icon {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
+        .floating-footer a:hover { text-decoration: underline; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card">
 
-                    <div class="processor-header">
-                        <h3 class="m-0" style="color: var(--accent) ;">LogiSlate Nexus - Store Invoicing</h3>
-                        <span class="version-tag">V4.9 Stable</span>
+    <!-- ── Header ─────────────────────────────────────────── -->
+    <header class="site-header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </div>
+            <span class="logo-name">Logi<span>Slate</span> Nexus</span>
+        </div>
+        <span class="badge-version">V4.9 Stable</span>
+    </header>
+
+    <!-- ── Main Card ─────────────────────────────────────────── -->
+    <main class="card">
+        <div class="card-body">
+
+            <!-- Info strip -->
+            <div class="info-strip">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                All processing happens locally in your browser — no data is uploaded to any server.
+            </div>
+
+            <!-- Drop Zone -->
+            <p class="section-label">Upload Manifest</p>
+            <div id="dropZone" class="drop-zone">
+                <div class="dz-icon">
+                    <svg id="dzIconDefault" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <svg id="dzIconDone" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <p class="dz-title" id="dzTitle">Drop your manifest file here</p>
+                <p class="dz-sub" id="dzSub">or click to browse &mdash; Excel (.xlsx, .xls) up to 50 MB</p>
+                <span class="dz-file-name hidden" id="dzFileName">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span id="dzFileNameText"></span>
+                </span>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-row">
+                <button id="processBtn" class="btn btn-primary" disabled>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    Generate Processed File
+                </button>
+                <button id="templateBtn" class="btn btn-outline">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download Template
+                </button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Log -->
+            <div class="log-header">
+                <div class="log-indicator">
+                    <div class="log-dot" id="logDot"></div>
+                    Processing Log
+                </div>
+                <button class="btn-clear-log" id="clearLogBtn">Clear</button>
+            </div>
+            <div id="log" class="log-container">
+                <div class="log-line">
+                    <span class="log-time">[system]</span>
+                    <span class="log-msg-ready">Ready for input.</span>
+                </div>
+            </div>
+
+        </div>
+
+        <footer class="card-footer">
+            <span class="footer-text">LogiSlate Nexus &mdash; Store Invoicing Processor</span>
+            <button class="btn-instructions" id="infoBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Instructions
+            </button>
+        </footer>
+    </main>
+
+    <!-- ── Instructions Modal ───────────────────────────────────── -->
+    <div id="overlay" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">How to use LogiSlate Nexus</span>
+                <button id="closeBtn" class="modal-close" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:var(--text-2);margin-bottom:20px;">
+                    LogiSlate will filter, organise, and group your store invoicing automatically.
+                </p>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <p class="step-text"><strong>Remove duplicate invoice numbers</strong> from your source data before uploading. You will need to re-add them manually after the file is created.</p>
                     </div>
-                    <!-- Trigger Button -->
-                    <button id="infoBtn" class="btn-primary-glow">
-                        <i class="bi bi-info-circle"></i> Instructions
-                    </button>
-
-                    <!-- Overlay Container -->
-                    <div id="overlay" class="glass-overlay hidden">
-                        <div class="glass-card">
-                            <button id="closeBtn" class="close-icon">&times;</button>
-                            <h2>LogiSlate Nexus Instructions</h2>
-                            <div class="glass-content">
-                                <p>Welcome! Follow these steps to maximize the tool:</p>
-                                <p>LogiSlate will filter, organize and group your 3rd-party invoicing for you.</p>
-                                <ul>
-                                    <li><strong>Step 1:</strong> Duplicate invoice numbers need to be removed, you will need to add these back manually once the file is created.</li>
-                                    <li><strong>Step 2:</strong> Upload your file, a template is available but not necassary.</li>
-                                    <li><strong>Step 3:</strong> 'Generate Processed File' will export your file into separate tabs based on Sending Store for deliveries and Receiving Store for IBTs.</li>
-                                    <li><strong>Step 4:</strong> You will still need to review each tab for Long Distance deliveries/IBTs.</li>
-                                </ul>
-                            </div>
-                        </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <p class="step-text"><strong>Upload your manifest file.</strong> A template is available if you need the correct column structure &mdash; click <em>Download Template</em> to get it.</p>
                     </div>
-
-                    <div id="dropZone" class="drop-zone mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="var(--accent)"
-                            viewBox="0 0 256 256" class="mb-3">
-                            <path
-                                d="M216,88H184V56a8,8,0,0,0-16,0V88H136a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V104h32a8,8,0,0,0,0-16Zm-32,72a8,8,0,0,0-8,8v40H48V48H120a8,8,0,0,0,0-16H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V168A8,8,0,0,0,184,160Z">
-                            </path>
-                        </svg>
-                        <h5>Drop Manifest Here</h5>
-                        <p>Excel files (.xlsx, .xls) supported up to 50MB</p>
-                        <input type="file" id="fileInput" accept=".xlsx, .xls" hidden>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <p class="step-text"><strong>Click Generate Processed File.</strong> The output will be split into separate tabs based on Sending Store for deliveries and Receiving Store for IBTs.</p>
                     </div>
-
-                    <div class="d-flex gap-3 mb-4">
-                        <button id="processBtn" class="btn-action btn-generate flex-grow-1" disabled>
-                            Generate Processed File
-                        </button>
-                        <button id="templateBtn" class="btn-action btn-template flex-grow-1">
-                            Download Template
-                        </button>
+                    <div class="step">
+                        <div class="step-num">4</div>
+                        <p class="step-text"><strong>Review each tab</strong> for Long Distance deliveries and IBTs before submitting for invoicing.</p>
                     </div>
-
-                    <div id="log" class="log-container">
-                        <span style="opacity: 0.5;">[SYSTEM] Ready for input.</span>
-                    </div>
-
                 </div>
             </div>
         </div>
     </div>
-</body>
+
+    <!-- ── Floating Copyright Footer ────────────────────────────── -->
+    <footer class="floating-footer">
+        <span>&copy; 2026 Glitched Designs</span>
+        <span>&middot;</span>
+        <a href="https://github.com/glitchedfelix" target="_blank" rel="noopener">GitHub</a>
+        <span>&middot;</span>
+        <a href="https://glitchedfelix.github.io/Personal-Portfolio-Website/" target="_blank" rel="noopener">Portfolio</a>
+    </footer>
 
 <script>
-    // Helper to format Excel Dates or String Dates to YYYY-MM-DD
+    // ── Helpers ────────────────────────────────────────────────────────────────────────
     function formatToShortDate(val) {
         if (!val) return "";
         let d = new Date(val);
-        // Check if date is valid
         if (isNaN(d.getTime())) return String(val).split(' ')[0];
         return d.toISOString().split('T')[0];
     }
@@ -291,77 +678,89 @@
         return (2.0 * intersect) / (a.length + b.length - 2);
     }
 
+    // ── Log ────────────────────────────────────────────────────────────────────────────
     const logBox = document.getElementById('log');
-    const log = (msg) => {
-        const d = document.createElement('div');
-        d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        logBox.appendChild(d);
+    const logDot = document.getElementById('logDot');
+
+    function log(msg, type = 'info') {
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        const time = document.createElement('span');
+        time.className = 'log-time';
+        time.textContent = `[${new Date().toLocaleTimeString()}]`;
+        const text = document.createElement('span');
+        text.className = `log-msg-${type}`;
+        text.textContent = msg;
+        line.appendChild(time);
+        line.appendChild(text);
+        logBox.appendChild(line);
         logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    document.getElementById('clearLogBtn').onclick = () => {
+        logBox.innerHTML = '';
+        logDot.classList.remove('active');
     };
 
-    const fileInput = document.getElementById('fileInput');
-    const dropZone = document.getElementById('dropZone');
+    // ── Drop Zone ────────────────────────────────────────────────────────────────
+    const fileInput  = document.getElementById('fileInput');
+    const dropZone   = document.getElementById('dropZone');
     const processBtn = document.getElementById('processBtn');
     let rawData = null;
 
-    // 1. CLICK TO UPLOAD
     dropZone.onclick = () => fileInput.click();
 
-    // 2. DRAG & DROP HANDLERS
-    // Prevent browser from opening the file when dropped
-    ['dragover', 'dragenter'].forEach(eventName => {
-        dropZone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropZone.style.borderColor = "#198754"; // Green highlight
-            dropZone.style.background = "#f8fffb";
-        });
+    ['dragover', 'dragenter'].forEach(ev => {
+        dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('drag-over'); });
     });
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropZone.style.borderColor = "#0d6efd"; // Reset blue
-            dropZone.style.background = "white";
-        });
+    ['dragleave'].forEach(ev => {
+        dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('drag-over'); });
     });
 
-    // 3. HANDLE THE DROP ACTION
-    dropZone.addEventListener('drop', (e) => {
-        const droppedFiles = e.dataTransfer.files;
-        if (droppedFiles.length > 0) {
-            handleFile(droppedFiles[0]);
-        }
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
     });
 
-    // 4. HANDLE MANUAL SELECTION (CLICK)
-    fileInput.onchange = (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    };
+    fileInput.onchange = e => { if (e.target.files.length > 0) handleFile(e.target.files[0]); };
 
-    // 5. THE CORE PROCESSING FUNCTION
+    function setDropZoneFile(name) {
+        dropZone.classList.add('has-file');
+        document.getElementById('dzIconDefault').classList.add('hidden');
+        document.getElementById('dzIconDone').classList.remove('hidden');
+        document.getElementById('dzTitle').textContent = 'File loaded';
+        document.getElementById('dzSub').textContent = 'Click or drop to replace';
+        document.getElementById('dzFileNameText').textContent = name;
+        document.getElementById('dzFileName').classList.remove('hidden');
+    }
+
     function handleFile(file) {
+        logDot.classList.add('active');
         log(`File detected: ${file.name}`);
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = ev => {
             try {
-                const data = new Uint8Array(event.target.result);
-                const wb = XLSX.read(data, { type: 'array', cellDates: true });
-                rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                log(`Successfully loaded ${rawData.length} rows.`);
+                const data = new Uint8Array(ev.target.result);
+                const wb   = XLSX.read(data, { type: 'array', cellDates: true });
+                rawData    = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                log(`Loaded ${rawData.length} rows successfully.`, 'success');
+                setDropZoneFile(file.name);
                 processBtn.disabled = false;
+                logDot.classList.remove('active');
             } catch (err) {
-                log(`Error reading file: ${err.message}`);
+                log(`Error reading file: ${err.message}`, 'error');
+                logDot.classList.remove('active');
             }
         };
         reader.readAsArrayBuffer(file);
     }
 
+    // ── Process (store-based grouping logic) ─────────────────────────────────
     processBtn.onclick = async () => {
         processBtn.disabled = true;
+        logDot.classList.add('active');
         log("Step 1: Normalizing dates and cleaning IDs...");
 
         const seen = new Set();
@@ -377,7 +776,7 @@
                     ...row,
                     _internalID: cleanID,
                     _isIBT: cleanID.startsWith('46'),
-                    _shortDate: formatToShortDate(row.Booking_Date), // Normalize to YYYY-MM-DD
+                    _shortDate: formatToShortDate(row.Booking_Date),
                     _tripID: String(row.ID || ""),
                     _dist: parseFloat(row.Delivery_Distance || 0),
                     _weight: parseFloat(row.Delivery_Weight || 0),
@@ -385,7 +784,9 @@
                     _address: String(row.To_Location || ""),
                     _sendingStore: String(row.Sending_Store || "Unknown").trim(),
                     _receivingStore: String(row.Receiving_Store || "Unknown").trim(),
-                    _storeKey: cleanID.startsWith('46') ? String(row.Receiving_Store || "Unknown").trim() : String(row.Sending_Store || "Unknown").trim()
+                    _storeKey: cleanID.startsWith('46')
+                        ? String(row.Receiving_Store || "Unknown").trim()
+                        : String(row.Sending_Store || "Unknown").trim()
                 });
             }
         });
@@ -417,7 +818,6 @@
                 let isMatch = false;
                 let matchType = "";
 
-                // Use the normalized Short Date for comparison
                 if (p._shortDate === c._shortDate) {
                     if (!p._isIBT && !c._isIBT) {
                         if (p._sendingStore && p._sendingStore === c._sendingStore) {
@@ -462,19 +862,19 @@
             const sheet = wb.addWorksheet(sheetName.substring(0, 31).replace(/[\[\]\*\?\/\\]/g, ""));
 
             sheet.columns = [
-                { header: 'Booking_Date', key: 'h_date', width: 15 },
-                { header: 'Shipper_Ref', key: 'h_ref', width: 15 },
-                { header: 'ID', key: 'h_id', width: 15 },
-                { header: 'Customer', key: 'h_cust', width: 25 },
-                { header: 'To_Location', key: 'h_addr', width: 35 },
-                { header: 'Sending_Store', key: 'h_send', width: 18 },
-                { header: 'Receiving_Store', key: 'h_recv', width: 18 },
-                { header: 'Delivery_Distance', key: 'h_dist', width: 15 },
-                { header: 'Delivery_Weight', key: 'h_weight', width: 15 },
-                { header: 'Grouped_invoice', key: 'h_ginv', width: 30 },
-                { header: 'Grouped_trip', key: 'h_gtrip', width: 30 },
-                { header: 'Confidence', key: 'h_conf', width: 12 },
-                { header: 'Reasoning', key: 'h_reas', width: 50 }
+                { header: 'Booking_Date',      key: 'h_date',   width: 15 },
+                { header: 'Shipper_Ref',        key: 'h_ref',    width: 15 },
+                { header: 'ID',                 key: 'h_id',     width: 15 },
+                { header: 'Customer',           key: 'h_cust',   width: 25 },
+                { header: 'To_Location',        key: 'h_addr',   width: 35 },
+                { header: 'Sending_Store',      key: 'h_send',   width: 18 },
+                { header: 'Receiving_Store',    key: 'h_recv',   width: 18 },
+                { header: 'Delivery_Distance',  key: 'h_dist',   width: 15 },
+                { header: 'Delivery_Weight',    key: 'h_weight', width: 15 },
+                { header: 'Grouped_invoice',    key: 'h_ginv',   width: 30 },
+                { header: 'Grouped_trip',       key: 'h_gtrip',  width: 30 },
+                { header: 'Confidence',         key: 'h_conf',   width: 12 },
+                { header: 'Reasoning',          key: 'h_reas',   width: 50 }
             ];
 
             const coData = groupedResults.filter(g => (g._storeKey || "Unknown") === storeKey);
@@ -484,26 +884,25 @@
             const i_gt = coData.filter(r => r._isIBT && r._dist > 150);
 
             const mapRow = (r) => ({
-                h_date: r._shortDate,
-                h_ref: r._internalID,
-                h_id: r._tripID,
-                h_cust: r._customer,
-                h_addr: r._address,
-                h_send: r._sendingStore || "",
-                h_recv: r._receivingStore || "",
-                h_dist: r._dist,
+                h_date:   r._shortDate,
+                h_ref:    r._internalID,
+                h_id:     r._tripID,
+                h_cust:   r._customer,
+                h_addr:   r._address,
+                h_send:   r._sendingStore || "",
+                h_recv:   r._receivingStore || "",
+                h_dist:   r._dist,
                 h_weight: r.totalW,
-                // Concatenation logic using // delimiter
-                h_ginv: r.subInvoices.length > 0 ? r.subInvoices.join(' // ') : "",
-                h_gtrip: r.subTrips.length > 0 ? r.subTrips.join(' // ') : "",
-                h_conf: (r.confValue * 100) + "%",
-                h_reas: r.reason
+                h_ginv:   r.subInvoices.length > 0 ? r.subInvoices.join(' // ') : "",
+                h_gtrip:  r.subTrips.length > 0 ? r.subTrips.join(' // ') : "",
+                h_conf:   (r.confValue * 100) + "%",
+                h_reas:   r.reason
             });
 
             [d_le, d_gt, [{}], i_le, i_gt].forEach(subset => {
                 subset.forEach(r => {
                     if (r._internalID) sheet.addRow(mapRow(r));
-                    else sheet.addRow({}); // Empty spacer row
+                    else sheet.addRow({});
                 });
             });
 
@@ -515,28 +914,27 @@
         a.href = URL.createObjectURL(new Blob([buffer]));
         a.download = `Logistics_Output_Final.xlsx`;
         a.click();
-        log("Process Complete!");
+        log("Process complete — file downloaded.", 'success');
+        logDot.classList.remove('active');
         processBtn.disabled = false;
     };
+
+    // ── Template ──────────────────────────────────────────────────────────────────────
     document.getElementById('templateBtn').onclick = async () => {
         const wb = new ExcelJS.Workbook();
         const sheet = wb.addWorksheet('Manifest Template');
-
-        // Define the exact headers the tool looks for
         sheet.columns = [
-            { header: 'Booking_Date', key: 'a' },
-            { header: 'Shipper_Ref', key: 'b' },
-            { header: 'ID', key: 'c' },
-            { header: 'Customer', key: 'd' },
-            { header: 'To_Location', key: 'e' },
+            { header: 'Booking_Date',      key: 'a' },
+            { header: 'Shipper_Ref',       key: 'b' },
+            { header: 'ID',                key: 'c' },
+            { header: 'Customer',          key: 'd' },
+            { header: 'To_Location',       key: 'e' },
             { header: 'Delivery_Distance', key: 'f' },
-            { header: 'Delivery_Weight', key: 'g' },
-            { header: 'Sending_Store', key: 'h' },
-            { header: 'Receiving_Store', key: 'i' },
-            { header: 'Driver_Address', key: 'j' }
+            { header: 'Delivery_Weight',   key: 'g' },
+            { header: 'Sending_Store',     key: 'h' },
+            { header: 'Receiving_Store',   key: 'i' },
+            { header: 'Driver_Address',    key: 'j' }
         ];
-
-        // Add one row of sample data so the user sees the format
         sheet.addRow({
             a: new Date().toISOString().split('T')[0],
             b: '2100000001',
@@ -549,9 +947,7 @@
             i: 'C527',
             j: 'Company name'
         });
-
         sheet.getRow(1).font = { bold: true };
-
         const buffer = await wb.xlsx.writeBuffer();
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([buffer]));
@@ -559,35 +955,16 @@
         a.click();
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const infoBtn = document.getElementById('infoBtn');
-        const overlay = document.getElementById('overlay');
-        const closeBtn = document.getElementById('closeBtn');
+    // ── Modal ──────────────────────────────────────────────────────────────────────────
+    const overlay = document.getElementById('overlay');
+    const openModal  = () => { overlay.classList.add('open');  document.body.style.overflow = 'hidden'; };
+    const closeModal = () => { overlay.classList.remove('open'); document.body.style.overflow = ''; };
 
-        const toggleOverlay = () => {
-            overlay.classList.toggle('hidden');
-            // Prevent scrolling when overlay is active
-            document.body.style.overflow = overlay.classList.contains('hidden') ? 'auto' : 'hidden';
-        };
-
-        // Event Listeners
-        infoBtn.addEventListener('click', toggleOverlay);
-        closeBtn.addEventListener('click', toggleOverlay);
-
-        // Close on clicking outside the card
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) toggleOverlay();
-        });
-
-        // Security & UX: Close on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
-                toggleOverlay();
-            }
-        });
-    });
+    document.getElementById('infoBtn').addEventListener('click', openModal);
+    document.getElementById('closeBtn').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
 
 </body>
-
 </html>
