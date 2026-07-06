@@ -725,33 +725,78 @@
         logDot.classList.add('active');
         log("Step 1: Normalizing dates and cleaning IDs...");
 
-        const seen = new Set();
-        const cleanedData = [];
+        const buckets = new Map();
 
         rawData.forEach((row) => {
             const refSource = row.Shipper_Ref || row.External_ID || "";
             const cleanID = String(refSource).replace(/\.0$/, "").trim();
+            if (!cleanID) return;
 
-            if (cleanID && !seen.has(cleanID)) {
-                seen.add(cleanID);
-                cleanedData.push({
-                    ...row,
-                    _internalID: cleanID,
-                    _isIBT: cleanID.startsWith('46'),
-                    _shortDate: formatToShortDate(row.Booking_Date),
-                    _tripID: String(row.ID || ""),
-                    _dist: parseFloat(row.Delivery_Distance || 0),
-                    _weight: parseFloat(row.Delivery_Weight || 0),
-                    _customer: String(row.Customer || ""),
-                    _address: String(row.To_Location || ""),
-                    _sendingStore: String(row.Sending_Store || "Unknown").trim(),
-                    _receivingStore: String(row.Receiving_Store || "Unknown").trim(),
-                    _storeKey: cleanID.startsWith('46')
-                        ? String(row.Receiving_Store || "Unknown").trim()
-                        : String(row.Sending_Store || "Unknown").trim()
-                });
-            }
+            if (!buckets.has(cleanID)) buckets.set(cleanID, []);
+            buckets.get(cleanID).push(row);
         });
+
+        const cleanedData = [];
+        let exactDupesRemoved = 0;
+        let mergeCount = 0;
+        let mergeRowsTotal = 0;
+
+        buckets.forEach((rows, cleanID) => {
+            const seenSignatures = new Set();
+            const distinctRows = [];
+            rows.forEach((row) => {
+                const signature = JSON.stringify(Object.keys(row).sort().map(k => row[k]));
+                if (seenSignatures.has(signature)) {
+                    exactDupesRemoved++;
+                } else {
+                    seenSignatures.add(signature);
+                    distinctRows.push(row);
+                }
+            });
+
+            const base = distinctRows[0];
+            const record = {
+                ...base,
+                _internalID: cleanID,
+                _isIBT: cleanID.startsWith('46'),
+                _shortDate: formatToShortDate(base.Booking_Date),
+                _tripID: String(base.ID || ""),
+                _dist: parseFloat(base.Delivery_Distance || 0),
+                _weight: parseFloat(base.Delivery_Weight || 0),
+                _customer: String(base.Customer || ""),
+                _address: String(base.To_Location || ""),
+                _sendingStore: String(base.Sending_Store || "Unknown").trim(),
+                _receivingStore: String(base.Receiving_Store || "Unknown").trim(),
+                _storeKey: cleanID.startsWith('46')
+                    ? String(base.Receiving_Store || "Unknown").trim()
+                    : String(base.Sending_Store || "Unknown").trim()
+            };
+
+            if (distinctRows.length > 1) {
+                const mergedTripIDs = new Set();
+                let weightSum = 0;
+                let maxDist = 0;
+                distinctRows.forEach((row) => {
+                    const tripID = String(row.ID || "");
+                    if (tripID) mergedTripIDs.add(tripID);
+                    weightSum += parseFloat(row.Delivery_Weight || 0);
+                    maxDist = Math.max(maxDist, parseFloat(row.Delivery_Distance || 0));
+                });
+                mergedTripIDs.delete(record._tripID);
+
+                record._weight = weightSum;
+                record._dist = maxDist;
+                record._mergedTripIDs = Array.from(mergedTripIDs);
+
+                mergeCount++;
+                mergeRowsTotal += distinctRows.length;
+            }
+
+            cleanedData.push(record);
+        });
+
+        if (exactDupesRemoved > 0) log(`Removed ${exactDupesRemoved} exact duplicate row(s).`);
+        if (mergeCount > 0) log(`Merged ${mergeCount} ID group(s) representing ${mergeRowsTotal} total rows.`);
 
         cleanedData.sort((a, b) => a._storeKey.localeCompare(b._storeKey));
 
@@ -766,9 +811,9 @@
             let group = {
                 ...p,
                 subInvoices: [],
-                subTrips: [],
+                subTrips: p._mergedTripIDs ? [...p._mergedTripIDs] : [],
                 totalW: p._weight,
-                reason: "No Grouping done",
+                reason: p._mergedTripIDs ? `Merged ${p._mergedTripIDs.length + 1} rows (same ID)` : "No Grouping done",
                 confValue: 1.0
             };
             processedRefs.add(p._internalID);
@@ -801,7 +846,9 @@
                     group.subInvoices.push(c._internalID);
                     group.subTrips.push(c._tripID);
                     group.totalW += c._weight;
-                    group.reason = `Grouped via ${matchType}`;
+                    group.reason = group.reason.startsWith("Merged")
+                        ? `${group.reason} + Grouped via ${matchType}`
+                        : `Grouped via ${matchType}`;
                     group.confValue = 0.95;
                     processedRefs.add(c._internalID);
                 }
