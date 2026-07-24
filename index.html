@@ -883,7 +883,9 @@
                 { header: 'Grouped_invoice',    key: 'h_ginv',   width: 30 },
                 { header: 'Grouped_trip',       key: 'h_gtrip',  width: 30 },
                 { header: 'Confidence',         key: 'h_conf',   width: 12 },
-                { header: 'Reasoning',          key: 'h_reas',   width: 50 }
+                { header: 'Reasoning',          key: 'h_reas',   width: 50 },
+                { header: 'Weight',             key: 'h_wrange', width: 15 },
+                { header: 'Distance',           key: 'h_drange', width: 15 }
             ];
 
             const coData = groupedResults.filter(g => (g._storeKey || "Unknown") === storeKey);
@@ -910,8 +912,17 @@
 
             [d_le, d_gt, [{}], i_le, i_gt].forEach(subset => {
                 subset.forEach(r => {
-                    if (r._internalID) sheet.addRow(mapRow(r));
-                    else sheet.addRow({});
+                    if (r._internalID) {
+                        const row = sheet.addRow(mapRow(r));
+                        const distRef   = row.getCell('h_dist').address;
+                        const weightRef = row.getCell('h_weight').address;
+                        row.getCell('h_wrange').value = { formula:
+                            `LOOKUP(${weightRef}*1000,{0,21,41,101,401,601,801,1000},{"0-20 Kgs","21-40 Kgs","41-100 Kgs","101-400 Kgs","401-600kgs","601-800kgs","801-999 Kgs","1 Ton"})` };
+                        row.getCell('h_drange').value = { formula:
+                            `LOOKUP(${distRef},{0,6,11,21,31,41,51,61,71,81,101,121,151},{"0-5 Km","6-10 Km","11-20 Km","21-30Km","31-40 Km","41-50 Km","51-60 Km","61-70 Km","71-80 Km","81-100 Km","101-120 Km","121-150 Km","Long Distance"})` };
+                    } else {
+                        sheet.addRow({});
+                    }
                 });
             });
 
