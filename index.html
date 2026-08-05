@@ -630,6 +630,15 @@
         return d.toISOString().split('T')[0];
     }
 
+    function formatRawData(rows) {
+        rows.forEach(row => {
+            if (String(row.UOM_Delivery_Weight || '').trim().toLowerCase() === 'kg') {
+                row.Delivery_Weight = parseFloat(row.Delivery_Weight || 0) / 1000;
+            }
+            row.Booking_Date = formatToShortDate(row.Booking_Date);
+        });
+    }
+
     function compareStrings(a, b) {
         a = String(a || "").toLowerCase().trim(); b = String(b || "").toLowerCase().trim();
         if (!a || !b) return 0; if (a === b) return 1;
@@ -707,6 +716,7 @@
                 const data = new Uint8Array(ev.target.result);
                 const wb   = XLSX.read(data, { type: 'array', cellDates: true });
                 rawData    = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                formatRawData(rawData);
                 log(`Loaded ${rawData.length} rows successfully.`, 'success');
                 setDropZoneFile(file.name);
                 processBtn.disabled = false;
